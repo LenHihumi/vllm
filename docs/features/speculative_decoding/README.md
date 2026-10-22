@@ -15,6 +15,7 @@ vLLM supports a variety of methods of speculative decoding. Model-based methods 
 - [Parallel Draft Model (PARD)](parallel_draft_model.md)
 - [Multi-Layer Perceptron](mlp.md)
 - [N-Gram](n_gram.md)
+- [Corpus N-Gram](corpus_ngram.md)
 - [Suffix Decoding](suffix.md)
 - [Hidden State Extraction](extract_hidden_states.md)
 - [Custom Proposer Backend (Experimental)](#custom-proposer-backend-experimental)
