@@ -107,3 +107,23 @@ interrupts decoding.
 - Partial prefill steps (no sampled tokens yet) are skipped.
 - Dictionaries are read-only during a step, so tensor-parallel workers can each
   hold their own copy of the same index file.
+
+### Greedy output can differ from an unaccelerated run by a few tokens
+
+Verification guarantees that only tokens the target model itself would sample are
+accepted, so the *distribution* is unchanged --- but greedy decoding is not
+bit-identical across engine layouts. The verify pass scores several positions in one
+batched forward, and bfloat16 reductions differ in the last bits from a
+single-position decode; where two candidates are nearly tied, the argmax can flip.
+This is a property of speculative decoding in general, not of this proposer: it
+shows up as a handful of flipped tokens, most often at points where the model is
+itself uncertain (a branch between two plausible statements), and everything after
+the flip follows deterministically.
+
+Measure it before you trust a throughput number. On a small smoke corpus with
+32-token greedy completions, this proposer produced identical output on every prompt
+where its drafts matched, and one prompt flipped at a high-uncertainty branch
+(`return "Error: ..."` vs `raise ValueError(...)`); the same arm re-run was
+reproducible. If you need exact token-for-token agreement with a vanilla baseline,
+score with `temperature=0` and compare token ids, and treat a small number of
+divergences at near-ties as expected rather than as a defect.
